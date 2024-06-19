@@ -2,6 +2,8 @@ import { LitElement, css, html } from 'lit';
 import { property } from 'lit/decorators.js';
 import { customElement } from 'lit/decorators/custom-element.js';
 import * as L from 'leaflet';
+import { formatDistanceToNow } from 'date-fns';
+import { de } from 'date-fns/locale';
 
 import '../node_modules/leaflet/dist/leaflet.css';
 
@@ -89,8 +91,11 @@ export class MyMap extends LitElement {
       <link rel="stylesheet" href="/local/ha-custom-cards/style.css">
       <ha-card header="${this.config.header}">
         <button @click=${this.buttonClicked}>Blitzer aktualisieren</button>
+        <ha-icon-button>
+          <ha-icon icon="mdi:plus"></ha-icon>
+        </ha-icon-button>
         ${blitzerList.map((attributes: any) =>
-          html`<div>${attributes.address} (${attributes.limit} km/h) - ${attributes.lastConfirmedAt}</div>`
+          html`<div>${attributes.address} (${attributes.limit} km/h) - ${formatDistanceToNow(new Date(attributes.lastConfirmedAt), { locale: de })}</div>`
         )}
         <div id="map"></div>
       </ha-card>
@@ -126,9 +131,8 @@ export class MyMap extends LitElement {
     const mapEl = this.shadowRoot!.querySelector('#map') as HTMLElement;
     const map = L.map(mapEl).setView([latitude, longitude], 13);
     const tl = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      // minZoom: 4,
-      // maxZoom: 19,
-      // attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      minZoom: 9,
+      maxZoom: 17,
     });
     map.addLayer(tl);
 
@@ -163,7 +167,7 @@ export class MyMap extends LitElement {
 
       if (centralize && this.markers.length > 0) {
         const markerGroup = L.featureGroup(this.markers);
-        map.fitBounds(markerGroup.getBounds());
+        map.fitBounds(markerGroup.getBounds(), { maxZoom: 12 });
       }
   }
 
